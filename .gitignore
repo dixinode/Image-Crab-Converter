@@ -1,0 +1,18 @@
+# Swift / Xcode
+.build/
+.swiftpm/
+*.xcodeproj/
+*.xcworkspace/
+xcuserdata/
+DerivedData/
+*.dSYM.zip
+*.dSYM
+
+# macOS
+.DS_Store
+.AppleDouble
+.LSOverride
+
+# Session files
+SESSION_CONTINUE.txt
+SESSION_HISTORY.md

@@ -11,6 +11,9 @@ struct ImageCrabConverterApp: App {
         WindowGroup("Image_Crab_Converter") {
             MainWindowView(viewerViewModel: viewerViewModel, batchViewModel: batchViewModel)
                 .frame(minWidth: 1080, minHeight: 700)
+                .onOpenURL { url in
+                    viewerViewModel.openImage(url: url)
+                }
         }
         .windowStyle(.hiddenTitleBar)
         .commands {

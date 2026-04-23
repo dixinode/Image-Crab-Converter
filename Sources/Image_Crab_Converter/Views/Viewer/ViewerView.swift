@@ -104,6 +104,11 @@ struct ViewerView: View {
         .onReceive(NotificationCenter.default.publisher(for: .viewerAdvanceToPreviousImage)) { _ in
             viewModel.previousImage()
         }
+        .onReceive(NotificationCenter.default.publisher(for: .viewerOpenFile)) { notification in
+            if let url = notification.object as? URL {
+                viewModel.openImage(url: url)
+            }
+        }
         .onChange(of: viewModel.isCanvasOnlyMode) { _, _ in
             viewModel.applyWindowChrome()
         }

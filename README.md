@@ -2,6 +2,20 @@
 
 A native macOS image viewer and batch converter built with SwiftUI + AppKit. Supports viewing, cropping, resizing, format conversion, and batch processing with a warm coffee-toned UI.
 
+## Screenshots
+
+### Viewer
+
+![Image Crab Converter viewer](assets/screenshots/viewer.png)
+
+### Crop
+
+![Image Crab Converter crop mode](assets/screenshots/crop.png)
+
+### Batch Processing
+
+![Image Crab Converter batch processing](assets/screenshots/batch.png)
+
 ## Features
 
 ### Image Viewer

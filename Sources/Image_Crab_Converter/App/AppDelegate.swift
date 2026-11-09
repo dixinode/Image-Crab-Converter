@@ -16,6 +16,11 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         NotificationCenter.default.post(name: .viewerOpenFile, object: url)
     }
 
+    /// Keep running in the menu bar (and keep watching Downloads) after the window is closed.
+    func applicationShouldTerminateAfterLastWindowClosed(_ sender: NSApplication) -> Bool {
+        false
+    }
+
     func applicationWillTerminate(_ notification: Notification) {
         if let navigationKeyMonitor {
             NSEvent.removeMonitor(navigationKeyMonitor)

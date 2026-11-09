@@ -462,10 +462,19 @@ final class ViewerViewModel: ObservableObject {
     private func timestampedURL(base: URL, suffix: String, ext: String) -> URL {
         let formatter = DateFormatter()
         formatter.dateFormat = "HH_mm_ss"
+        formatter.locale = Locale(identifier: "en_US_POSIX")
         let timestamp = formatter.string(from: Date())
-        return base.deletingLastPathComponent()
-            .appendingPathComponent(base.deletingPathExtension().lastPathComponent + suffix + timestamp)
-            .appendingPathExtension(ext)
+        let directory = base.deletingLastPathComponent()
+        let stem = base.deletingPathExtension().lastPathComponent + suffix + timestamp
+
+        // Two edits within the same second used to silently overwrite each other.
+        var candidate = directory.appendingPathComponent(stem).appendingPathExtension(ext)
+        var counter = 2
+        while FileManager.default.fileExists(atPath: candidate.path) {
+            candidate = directory.appendingPathComponent("\(stem)_\(counter)").appendingPathExtension(ext)
+            counter += 1
+        }
+        return candidate
     }
     
     func resizeCurrentImage() {

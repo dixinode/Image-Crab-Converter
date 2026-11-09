@@ -16,3 +16,5 @@ DerivedData/
 # Session files
 SESSION_CONTINUE.txt
 SESSION_HISTORY.md
+build/
+.claude/

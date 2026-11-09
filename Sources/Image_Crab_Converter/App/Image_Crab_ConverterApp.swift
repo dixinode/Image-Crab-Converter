@@ -6,9 +6,10 @@ struct ImageCrabConverterApp: App {
     @NSApplicationDelegateAdaptor(AppDelegate.self) private var appDelegate
     @StateObject private var viewerViewModel = ViewerViewModel()
     @StateObject private var batchViewModel = BatchViewModel()
+    @StateObject private var autoConvert = AutoConvertController()
 
     var body: some Scene {
-        WindowGroup("Image_Crab_Converter") {
+        WindowGroup("Image_Crab_Converter", id: AutoConvertMenu.mainWindowID) {
             MainWindowView(viewerViewModel: viewerViewModel, batchViewModel: batchViewModel)
                 .frame(minWidth: 1080, minHeight: 700)
                 .onOpenURL { url in
@@ -63,6 +64,13 @@ struct ImageCrabConverterApp: App {
             }
 
         }
+
+        MenuBarExtra {
+            AutoConvertMenu(controller: autoConvert)
+        } label: {
+            Image(systemName: autoConvert.isEnabled ? "photo.fill" : "photo")
+        }
+        .menuBarExtraStyle(.menu)
 
         Settings {
             Form {

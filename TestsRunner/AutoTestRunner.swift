@@ -302,6 +302,52 @@ enum AutoTestRunner {
             try expect(out2.width == 100 && out2.height == 50, "Second file percent resize mismatch")
         }
 
+        await run("HEIC auto-convert: 45%, upright, dated name", failures: &failures) {
+            let root = FileManager.default.temporaryDirectory.appendingPathComponent(UUID().uuidString)
+            try FileManager.default.createDirectory(at: root, withIntermediateDirectories: true)
+            let heic = root.appendingPathComponent("IMG_0001.HEIC")
+            try TestImageFactory.makeHEIC(width: 4000, height: 3000, orientation: 6, dateTimeOriginal: "2026:11:09 10:15:42", at: heic)
+
+            try expect(HEICAutoConverter.isHEIC(heic), "Upper-case .HEIC must be recognised")
+            let output = try HEICAutoConverter().convert(sourceURL: heic)
+
+            try expect(output.lastPathComponent == "2026-11-09_10-15-42-auto_converted.jpg", "Unexpected name \(output.lastPathComponent)")
+            let doc = try ImageDocument(url: output)
+            try expect(doc.format == .jpeg, "Output must be JPEG")
+            try expect(doc.width == 1350 && doc.height == 1800, "Expected upright 1350x1800, got \(doc.width)x\(doc.height)")
+
+            let second = try HEICAutoConverter().convert(sourceURL: heic)
+            try expect(second.lastPathComponent == "2026-11-09_10-15-42-auto_converted_2.jpg", "Second conversion must not overwrite the first")
+        }
+
+        await run("Folder watcher converts only new HEIC files", failures: &failures) {
+            let root = FileManager.default.temporaryDirectory.appendingPathComponent(UUID().uuidString)
+            try FileManager.default.createDirectory(at: root, withIntermediateDirectories: true)
+            let suite = "ImageCrabConverterAutoTests.\(UUID().uuidString)"
+            let defaults = try unwrap(UserDefaults(suiteName: suite), "defaults")
+            defer { defaults.removePersistentDomain(forName: suite) }
+
+            try TestImageFactory.makeHEIC(width: 400, height: 300, at: root.appendingPathComponent("old.heic"))
+
+            let watcher = FolderAutoConverter(directory: root, defaults: defaults, stabilityInterval: 0.3) { _ in }
+            watcher.start()
+            try await Task.sleep(nanoseconds: 500_000_000)
+            try TestImageFactory.makeHEIC(width: 400, height: 300, at: root.appendingPathComponent("new.heic"))
+
+            var jpgs: [String] = []
+            for _ in 0..<40 {
+                try await Task.sleep(nanoseconds: 100_000_000)
+                jpgs = try FileManager.default.contentsOfDirectory(atPath: root.path).filter { $0.hasSuffix(".jpg") }
+                if !jpgs.isEmpty { break }
+            }
+            try await Task.sleep(nanoseconds: 800_000_000)
+            jpgs = try FileManager.default.contentsOfDirectory(atPath: root.path).filter { $0.hasSuffix(".jpg") }
+            watcher.stop()
+
+            try expect(jpgs.count == 1, "Expected exactly one JPEG (for new.heic), got \(jpgs)")
+            try expect(jpgs[0].hasSuffix("-auto_converted.jpg"), "Unexpected name \(jpgs[0])")
+        }
+
         if failures > 0 {
             print("\nFAILURES: \(failures)")
             Foundation.exit(1)
@@ -322,6 +368,11 @@ enum AutoTestRunner {
             failures += 1
             print("FAIL - \(title): \(error)")
         }
+    }
+
+    private static func unwrap<T>(_ value: T?, _ what: String) throws -> T {
+        guard let value else { throw TestFailure("Missing \(what)") }
+        return value
     }
 
     private static func expect(_ condition: @autoclosure () -> Bool, _ message: String) throws {
